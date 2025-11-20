@@ -1,121 +1,73 @@
+// app/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-} from 'recharts'
-
+import { DetectionsAreaChart } from './components/DetectionsAreaChart'
 type Frame = {
-  id: string
+  id: number
   ts: string
-  width: number | null
-  height: number | null
   nDet: number | null
 }
 
 export default function Home() {
   const [frames, setFrames] = useState<Frame[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [totalDet, setTotalDet] = useState(0)
 
   useEffect(() => {
     const load = async () => {
-      setLoading(true)
-      setError(null)
-
       const { data, error } = await supabase
         .from('frames')
         .select('*')
         .order('ts', { ascending: false })
-        .limit(50)
+        .limit(100)
 
-      if (error) {
-        setError(error.message)
-      } else {
+      if (!error && data) {
         setFrames(data as Frame[])
+        setTotalDet(
+          data.reduce((acc, f) => acc + (f.nDet ?? 0), 0)
+        )
       }
-
-      setLoading(false)
     }
 
     load()
   }, [])
 
-  const chartData = frames
-    .slice()
-    .reverse()
-    .map((f) => ({
-      ts: new Date(f.ts).toLocaleTimeString(),
-      nDet: f.nDet ?? 0,
-    }))
-
   return (
-    <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Dashboard de Detecciones</h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <DetectionsAreaChart data={frames.map(f => ({ ts: f.ts, nDet: f.nDet ?? 0 }))} />
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1rem',
+        }}
+      >
+        <MetricCard title="Frames procesados" value={frames.length} />
+        <MetricCard title="Detecciones totales" value={totalDet} />
+        <MetricCard title="Promedio det./frame" value={frames.length ? (totalDet / frames.length).toFixed(2) : 0} />
+      </section>
 
-      {loading && <p>Cargando...</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+      {/* aquí luego irán los gráficos grandes, tablas, etc. */}
+    </div>
+  )
+}
 
-      {!loading && !error && (
-        <>
-          <section style={{ marginTop: '1.5rem' }}>
-            <h2>Evolución de # detecciones</h2>
-            <div style={{ width: '100%', height: 300 }}>
-              <ResponsiveContainer>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="ts" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="nDet"
-                    stroke="#8884d8"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          <section style={{ marginTop: '2rem' }}>
-            <h2>Últimos frames</h2>
-            <table
-              border={1}
-              cellPadding={4}
-              style={{ marginTop: '1rem', borderCollapse: 'collapse' }}
-            >
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Timestamp</th>
-                  <th>Resolución</th>
-                  <th># Detecciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {frames.map((f) => (
-                  <tr key={f.id}>
-                    <td>{f.id}</td>
-                    <td>{new Date(f.ts).toLocaleString()}</td>
-                    <td>
-                      {f.width} x {f.height}
-                    </td>
-                    <td>{f.nDet}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        </>
-      )}
-    </main>
+function MetricCard({ title, value }: { title: string; value: number | string }) {
+  return (
+    <div
+      style={{
+        background: 'white',
+        borderRadius: '0.75rem',
+        padding: '1rem 1.25rem',
+        boxShadow: '0 10px 25px rgba(15,23,42,0.07)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.25rem',
+      }}
+    >
+      <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>{title}</span>
+      <span style={{ fontSize: '1.5rem', fontWeight: 600 }}>{value}</span>
+    </div>
   )
 }
