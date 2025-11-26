@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { DetectionsAreaChart } from './components/DetectionsAreaChart'
+
 type Frame = {
   id: number
   ts: string
