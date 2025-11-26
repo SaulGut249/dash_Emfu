@@ -85,11 +85,17 @@ export default function Home() {
               if (f.id === newDet.frame_id) {
                 // Avoid duplicates if any
                 if (f.detections.some(d => d.id === newDet.id)) return f;
-                return { ...f, detections: [...f.detections, newDet] }
+                // Increment nDet and add detection
+                return { 
+                  ...f, 
+                  nDet: (f.nDet ?? 0) + 1,
+                  detections: [...f.detections, newDet] 
+                }
               }
               return f
             })
           })
+          setTotalDet((prev) => prev + 1)
         }
       )
       .subscribe()
