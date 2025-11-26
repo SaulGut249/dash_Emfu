@@ -24,7 +24,11 @@ export default function Home() {
         .limit(100)
 
       if (!error && data) {
-        setFrames(data as Frame[])
+        // Reverse to show oldest to newest in chart if needed, 
+        // but typically charts expect time sorted. 
+        // Let's keep it sorted by time ascending for the chart.
+        const sortedData = (data as Frame[]).sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime())
+        setFrames(sortedData)
         setTotalDet(
           data.reduce((acc, f) => acc + (f.nDet ?? 0), 0)
         )
@@ -32,18 +36,37 @@ export default function Home() {
     }
 
     load()
+
+    // Real-time subscription
+    const channel = supabase
+      .channel('realtime-frames')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'frames' },
+        (payload) => {
+          const newFrame = payload.new as Frame
+          setFrames((prev) => {
+            const newFrames = [...prev, newFrame]
+            // Keep only last 100 frames to avoid memory issues
+            if (newFrames.length > 100) {
+              return newFrames.slice(newFrames.length - 100)
+            }
+            return newFrames
+          })
+          setTotalDet((prev) => prev + (newFrame.nDet ?? 0))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="flex flex-col gap-6">
       <DetectionsAreaChart data={frames.map(f => ({ ts: f.ts, nDet: f.nDet ?? 0 }))} />
-      <section
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}
-      >
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <MetricCard title="Frames procesados" value={frames.length} />
         <MetricCard title="Detecciones totales" value={totalDet} />
         <MetricCard title="Promedio det./frame" value={frames.length ? (totalDet / frames.length).toFixed(2) : 0} />
@@ -56,19 +79,9 @@ export default function Home() {
 
 function MetricCard({ title, value }: { title: string; value: number | string }) {
   return (
-    <div
-      style={{
-        background: 'white',
-        borderRadius: '0.75rem',
-        padding: '1rem 1.25rem',
-        boxShadow: '0 10px 25px rgba(15,23,42,0.07)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.25rem',
-      }}
-    >
-      <span style={{ fontSize: '0.8rem', color: '#6b7280' }}>{title}</span>
-      <span style={{ fontSize: '1.5rem', fontWeight: 600 }}>{value}</span>
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm flex flex-col gap-1">
+      <span className="text-sm text-gray-500 dark:text-gray-400">{title}</span>
+      <span className="text-2xl font-semibold text-gray-900 dark:text-white">{value}</span>
     </div>
   )
 }
