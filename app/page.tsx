@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { DetectionsAreaChart } from "./components/DetectionsAreaChart";
 import { DetectionViewer } from "./components/DetectionViewer";
+import { LatencyAreaChart } from "./components/LatencyAreaChart";
 
 type Detection = {
 	id: string;
@@ -170,6 +171,12 @@ export default function Home() {
 					</div>
 					<DetectionsAreaChart
 						data={chartFrames.map((f) => ({ ts: f.ts, nDet: f.ndet ?? 0 }))}
+					/>
+					<LatencyAreaChart
+						data={chartFrames.map((f) => ({
+							ts: f.ts,
+							...(f.latencies || {}),
+						}))}
 					/>
 				</div>
 
