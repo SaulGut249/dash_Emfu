@@ -25,13 +25,21 @@ export function DetectionViewer({ width, height, detections }: Props) {
 			<h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
 				Vista en Vivo (Esquemática)
 			</h3>
-			<div className="flex-1 w-full h-full relative bg-gray-100 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
+			<div
+				className="flex-1 w-full h-full relative bg-gray-100 dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 overflow-hidden"
+				style={{
+					backgroundImage: "url('/Imagen2.png')",
+					backgroundSize: "cover",
+					backgroundPosition: "center",
+					backgroundRepeat: "no-repeat",
+				}}
+			>
 				<svg
 					viewBox={`0 0 ${w} ${h}`}
 					className="w-full h-full"
 					preserveAspectRatio="xMidYMid meet"
 				>
-					{/* Background placeholder */}
+					{/* Background placeholder - removed since we have a real background now, or keep it transparent */}
 					<rect x="0" y="0" width={w} height={h} fill="none" />
 
 					{detections.map((d, i) => (
