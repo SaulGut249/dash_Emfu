@@ -42,8 +42,25 @@ export function DetectionViewer({ width, height, detections }: Props) {
 					{/* Background placeholder - removed since we have a real background now, or keep it transparent */}
 					<rect x="0" y="0" width={w} height={h} fill="none" />
 
+					<defs>
+						<filter id="blur-border" x="-50%" y="-50%" width="200%" height="200%">
+							<feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+						</filter>
+					</defs>
+
 					{detections.map((d, i) => (
 						<g key={i}>
+							{/* Black fill area */}
+							<rect
+								x={d.x1}
+								y={d.y1}
+								width={d.x2 - d.x1}
+								height={d.y2 - d.y1}
+								fill="black"
+								fillOpacity="0.5"
+								stroke="none"
+							/>
+							{/* Blurred border */}
 							<rect
 								x={d.x1}
 								y={d.y1}
@@ -51,8 +68,11 @@ export function DetectionViewer({ width, height, detections }: Props) {
 								height={d.y2 - d.y1}
 								fill="none"
 								stroke="#ef4444"
-								strokeWidth="2"
+								strokeWidth="4"
+								filter="url(#blur-border)"
 							/>
+							{/* Sharp border overlay (optional, for definition) - keeping just the blurred one as requested */}
+							
 							<text
 								x={d.x1}
 								y={d.y1 - 5}
