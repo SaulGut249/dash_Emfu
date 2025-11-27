@@ -23,7 +23,7 @@ type Frame = {
 	ts: string;
 	width: number;
 	height: number;
-	nDet: number | null;
+	ndet: number | null;
 	latencies: Record<string, number> | null;
 	detections: Detection[];
 };
@@ -58,7 +58,7 @@ export default function Home() {
 				return sortedData;
 			});
 
-			setTotalDet(data.reduce((acc, f) => acc + (f.nDet ?? 0), 0));
+			setTotalDet(data.reduce((acc, f) => acc + (f.ndet ?? 0), 0));
 		}
 	};
 
@@ -90,7 +90,7 @@ export default function Home() {
 						}
 						return newFrames;
 					});
-					setTotalDet((prev) => prev + (newFrame.nDet ?? 0));
+					setTotalDet((prev) => prev + (newFrame.ndet ?? 0));
 				}
 			)
 			.on(
@@ -107,7 +107,7 @@ export default function Home() {
 								// Increment nDet and add detection
 								return {
 									...f,
-									nDet: (f.nDet ?? 0) + 1,
+									ndet: (f.ndet ?? 0) + 1,
 									detections: [...f.detections, newDet],
 								};
 							}
@@ -169,7 +169,7 @@ export default function Home() {
 						</label>
 					</div>
 					<DetectionsAreaChart
-						data={chartFrames.map((f) => ({ ts: f.ts, nDet: f.nDet ?? 0 }))}
+						data={chartFrames.map((f) => ({ ts: f.ts, nDet: f.ndet ?? 0 }))}
 					/>
 				</div>
 
