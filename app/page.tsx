@@ -31,13 +31,14 @@ type Frame = {
 export default function Home() {
 	const [frames, setFrames] = useState<Frame[]>([]);
 	const [totalDet, setTotalDet] = useState(0);
+	const [visibleCount, setVisibleCount] = useState(120);
 
 	const fetchLatestFrames = async () => {
 		const { data, error } = await supabase
 			.from("frames")
 			.select("*, detections(*)")
 			.order("ts", { ascending: false })
-			.limit(100);
+			.limit(120);
 
 		if (!error && data) {
 			// Sort by time ascending for the chart
@@ -84,8 +85,8 @@ export default function Home() {
 						if (prev.some((f) => f.id === newFrame.id)) return prev;
 
 						const newFrames = [...prev, newFrame];
-						if (newFrames.length > 100) {
-							return newFrames.slice(newFrames.length - 100);
+						if (newFrames.length > 120) {
+							return newFrames.slice(newFrames.length - 120);
 						}
 						return newFrames;
 					});
@@ -137,6 +138,9 @@ export default function Home() {
 			  }, 0) / Math.min(frames.length, 10)
 			: 0;
 
+	// Filter frames for the chart based on slider
+	const chartFrames = frames.slice(-visibleCount);
+
 	return (
 		<div className="flex flex-col gap-6 p-6">
 			<header>
@@ -150,9 +154,24 @@ export default function Home() {
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* Gráfico de Detecciones */}
-				<DetectionsAreaChart
-					data={frames.map((f) => ({ ts: f.ts, nDet: f.nDet ?? 0 }))}
-				/>
+				<div className="flex flex-col gap-2">
+					<div className="flex justify-end px-2">
+						<label className="text-xs text-gray-500 flex items-center gap-2">
+							Mostrar últimos {visibleCount} frames
+							<input
+								type="range"
+								min="10"
+								max="120"
+								value={visibleCount}
+								onChange={(e) => setVisibleCount(Number(e.target.value))}
+								className="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+							/>
+						</label>
+					</div>
+					<DetectionsAreaChart
+						data={chartFrames.map((f) => ({ ts: f.ts, nDet: f.nDet ?? 0 }))}
+					/>
+				</div>
 
 				{/* Visualizador de Detecciones (Frame) */}
 				{latestFrame ? (
