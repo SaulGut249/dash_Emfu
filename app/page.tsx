@@ -181,17 +181,19 @@ export default function Home() {
 				</div>
 
 				{/* Visualizador de Detecciones (Frame) */}
-				{latestFrame ? (
-					<DetectionViewer
-						width={latestFrame.width}
-						height={latestFrame.height}
-						detections={latestFrame.detections || []}
-					/>
-				) : (
-					<div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm h-80 flex items-center justify-center text-gray-500">
-						Esperando datos...
-					</div>
-				)}
+				<div className="h-full">
+					{latestFrame ? (
+						<DetectionViewer
+							width={latestFrame.width}
+							height={latestFrame.height}
+							detections={latestFrame.detections || []}
+						/>
+					) : (
+						<div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm h-full flex items-center justify-center text-gray-500">
+							Esperando datos...
+						</div>
+					)}
+				</div>
 			</div>
 
 			<section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

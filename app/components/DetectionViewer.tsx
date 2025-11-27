@@ -21,7 +21,7 @@ export function DetectionViewer({ width, height, detections }: Props) {
 	const h = height || 480;
 
 	return (
-		<div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm h-80 flex flex-col">
+		<div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm h-full flex flex-col">
 			<h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
 				Vista en Vivo (Esquemática)
 			</h3>
